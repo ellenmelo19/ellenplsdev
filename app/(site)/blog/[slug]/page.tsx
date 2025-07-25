@@ -1,16 +1,13 @@
 import { pool } from '@/lib/db';
 import { notFound } from 'next/navigation';
 
-interface Post {
-  id: number;
-  title: string;
-  slug: string;
-  content: string;
-  tags: string[];
+export async function generateStaticParams() {
+  const { rows } = await pool.query('SELECT slug FROM posts');
+  return rows.map((post) => ({ slug: post.slug }));
 }
 
 export default async function BlogPost({ params }: { params: { slug: string } }) {
-  const { rows } = await pool.query<Post>('SELECT * FROM posts WHERE slug = $1', [params.slug]);
+  const { rows } = await pool.query('SELECT * FROM posts WHERE slug = $1', [params.slug]);
   
   if (!rows.length) {
     notFound();
