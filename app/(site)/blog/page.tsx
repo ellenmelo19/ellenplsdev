@@ -1,36 +1,47 @@
-import { pool } from '@/lib/db';
-import { notFound } from 'next/navigation';
+import { getPosts } from '@/lib/db';
 
-export async function generateStaticParams() {
-  const { rows: posts } = await pool.query('SELECT slug FROM posts');
-  return posts.map((post) => ({ slug: post.slug }));
+interface Post {
+  id: string | number;
+  title: string;
+  content: string;
+  tags?: string[];
 }
 
-export default async function BlogPost({ params }: { params: { slug: string } }) {
-  const { rows } = await pool.query('SELECT * FROM posts WHERE slug = $1', [params.slug]);
-  
-  if (rows.length === 0) {
-    notFound();
+export default async function Blog() {
+  const posts: Post[] = await getPosts();
+
+  // Adicione este console.log para debug
+  console.log('Posts from DB:', posts);
+
+  if (!posts || posts.length === 0) {
+    return (
+      <div className="max-w-4xl mx-auto p-4">
+        <h1 className="font-mono text-3xl mb-8">Blog</h1>
+        <p>Nenhum post encontrado. Adicione posts via Painel do Neon.</p>
+      </div>
+    );
   }
 
-  const post = rows[0];
-
   return (
-    <article className="max-w-2xl mx-auto p-4">
-      <header className="mb-8">
-        <h1 className="font-mono text-3xl font-bold">{post.title}</h1>
-        <div className="flex gap-2 mt-3">
-          {post.tags?.map((tag: string) => (
-            <span key={tag} className="px-2 py-1 bg-pixel-green text-xs rounded-full">
-              #{tag}
-            </span>
-          ))}
-        </div>
-      </header>
-      
-      <div className="prose max-w-none">
-        {post.content}
+    <main className="max-w-4xl mx-auto p-4">
+      <h1 className="font-mono text-3xl mb-8">Blog</h1>
+      <div>
+        {posts.map((post) => (
+          <article key={post.id} className="mb-8 p-4 border rounded-lg">
+            <h2 className="text-xl font-bold">{post.title}</h2>
+            <p>{post.content}</p>
+            {post.tags && (
+              <div className="mt-3 flex gap-2">
+                {post.tags.map((tag) => (
+                  <span key={tag} className="px-2 py-1 bg-pixel-green text-xs rounded-full">
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+            )}
+          </article>
+        ))}
       </div>
-    </article>
+    </main>
   );
 }
