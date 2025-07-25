@@ -1,11 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
-    serverActions: true,
+    serverActions: {}, // Objeto vazio em vez de true/false
   },
-  typescript: {
-    ignoreBuildErrors: true,
-  },
+  // Remova a linha typescript.ignoreBuildErrors se possível
 };
 
 module.exports = nextConfig;
